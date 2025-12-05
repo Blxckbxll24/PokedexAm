@@ -1,5 +1,4 @@
 {
-  "name": "pokedex-pwa",
   "version": 2,
   "builds": [
     {
@@ -68,12 +67,6 @@
       ]
     }
   ],
-  "functions": {
-    "build": {
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }
