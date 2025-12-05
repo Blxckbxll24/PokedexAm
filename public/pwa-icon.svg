@@ -1,0 +1,21 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo circular rojo Pokemon -->
+  <circle cx="96" cy="96" r="96" fill="#DC0A2D"/>
+  
+  <!-- Pokeball -->
+  <!-- Parte superior blanca -->
+  <path d="M96 48C123.614 48 146.182 67.2091 150.237 93H41.763C45.8179 67.2091 68.3858 48 96 48Z" fill="white"/>
+  
+  <!-- Parte inferior roja -->
+  <path d="M96 144C68.3858 144 45.8179 124.791 41.763 99H150.237C146.182 124.791 123.614 144 96 144Z" fill="#1A1A1A"/>
+  
+  <!-- Línea divisoria -->
+  <rect x="24" y="93" width="144" height="6" fill="#333333"/>
+  
+  <!-- Círculo central -->
+  <circle cx="96" cy="96" r="16" fill="white" stroke="#333333" stroke-width="4"/>
+  <circle cx="96" cy="96" r="8" fill="#333333"/>
+  
+  <!-- Highlight en la parte superior -->
+  <ellipse cx="96" cy="72" rx="24" ry="8" fill="rgba(255, 255, 255, 0.4)"/>
+</svg>

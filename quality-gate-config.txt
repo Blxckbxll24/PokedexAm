@@ -1,0 +1,53 @@
+# Configuración Quality Gate Estricto - Pokedx PWA
+# Archivo para configurar el Quality Gate en SonarQube
+
+# Este archivo contiene los parámetros para crear un Quality Gate estricto
+# que debe configurarse manualmente en la interfaz de SonarQube
+
+QUALITY_GATE_CONFIG = {
+    "name": "Strict-Pokedx-PWA-Gate",
+    "description": "Quality Gate estricto para evaluación DevOps",
+    "conditions": [
+        {
+            "metric": "bugs",
+            "operator": "GREATER_THAN",
+            "threshold": "0",
+            "error": true
+        },
+        {
+            "metric": "vulnerabilities", 
+            "operator": "GREATER_THAN",
+            "threshold": "0",
+            "error": true
+        },
+        {
+            "metric": "coverage",
+            "operator": "LESS_THAN", 
+            "threshold": "50",
+            "error": true
+        },
+        {
+            "metric": "duplicated_lines_density",
+            "operator": "GREATER_THAN",
+            "threshold": "3",
+            "error": true
+        },
+        {
+            "metric": "code_smells",
+            "operator": "GREATER_THAN", 
+            "threshold": "5",
+            "error": true
+        }
+    ]
+}
+
+# INSTRUCCIONES PARA CONFIGURAR EN SONARQUBE:
+# 1. Acceder a http://localhost:9000/quality_gates
+# 2. Crear nuevo Quality Gate con nombre "Strict-Pokedx-PWA-Gate"
+# 3. Agregar las condiciones listadas arriba:
+#    - Bugs > 0 (FALLA)
+#    - Vulnerabilidades > 0 (FALLA) 
+#    - Cobertura < 50% (FALLA)
+#    - Líneas duplicadas > 3% (FALLA)
+#    - Code Smells > 5 (FALLA)
+# 4. Asignar este Quality Gate al proyecto "pokedx-pwa"

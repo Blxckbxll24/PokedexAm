@@ -1,0 +1,43 @@
+# Ignorar archivos de desarrollo
+node_modules
+npm-debug.log
+.npm
+.nyc_output
+coverage
+
+# Archivos de configuración local
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build de desarrollo
+dist
+build
+
+# Archivos de editor
+.vscode
+.idea
+*.swp
+*.swo
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Git
+.git
+.gitignore
+
+# Testing
+coverage
+test-results
+
+# Documentación de desarrollo
+README.md
+DEPLOYMENT.md
