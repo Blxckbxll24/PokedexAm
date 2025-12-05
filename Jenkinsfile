@@ -62,24 +62,23 @@ pipeline {
             steps {
                 echo '📊 Ejecutando Análisis de Código Estático...'
 
-                withSonarQubeEnv('SonarQube') {
-                    script {
-                        def scannerHome = tool 'SonarScanner'
-
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                            -Dsonar.projectName="Pokedex PWA - DevOps Evaluation" \
-                            -Dsonar.projectVersion=${BUILD_NUMBER} \
-                            -Dsonar.sources=src \
-                            -Dsonar.tests=src/test \
-                            -Dsonar.test.inclusions=**/*.test.*,**/*.spec.* \
-                            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-                            -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/node_modules/** \
-                            -Dsonar.host.url=${SONAR_HOST_URL}
-                        """
-                    }
-                }
+                     withSonarQubeEnv('SonarQube') {
+            withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                sh """
+                    sonar-scanner \
+                      -Dsonar.projectKey=pokedx-pwa \
+                      -Dsonar.projectName="Pokedex PWA - DevOps Evaluation" \
+                      -Dsonar.projectVersion=${BUILD_NUMBER} \
+                      -Dsonar.sources=src \
+                      -Dsonar.tests=src/test \
+                      -Dsonar.test.inclusions=**/*.test.*,**/*.spec.* \
+                      -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+                      -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/node_modules/** \
+                      -Dsonar.host.url=http://sonarqube:9000 \
+                      -Dsonar.token=$SONAR_TOKEN
+                """
+            }
+        }
             }
         }
         
