@@ -94,8 +94,8 @@ function complexFunction(x: number): string {
   }
 }
 
-// Variables no utilizadas (code smells)
-const unusedVariable = 'this will cause code smell'
-const anotherUnusedVariable = 123
+// Variables no utilizadas (code smells) - COMENTADAS por defecto
+// const unusedVariable = 'this will cause code smell'
+// const anotherUnusedVariable = 123
 
 export { duplicatedFunction, anotherDuplicatedFunction, complexFunction }
