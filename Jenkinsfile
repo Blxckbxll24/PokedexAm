@@ -3,11 +3,9 @@ pipeline {
     
     tools {
         nodejs "NodeJS-18"
-        SonarScanner "sonar-scanner"
     }
     
     environment {
-        // Variables del proyecto
         PROJECT_NAME = 'pokedex-pwa'
         SONAR_PROJECT_KEY = 'pokedx-pwa'
         SONAR_HOST_URL = 'http://localhost:9000'
@@ -48,7 +46,6 @@ pipeline {
             }
             post {
                 always {
-                    // Archivar reportes de coverage
                     publishHTML([
                         allowMissing: false,
                         alwaysLinkToLastBuild: true,
@@ -64,19 +61,24 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo '📊 Ejecutando Análisis de Código Estático...'
+
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sonar-scanner \\
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \\
-                        -Dsonar.projectName="Pokedex PWA - DevOps Evaluation" \\
-                        -Dsonar.projectVersion=${BUILD_NUMBER} \\
-                        -Dsonar.sources=src \\
-                        -Dsonar.tests=src/test \\
-                        -Dsonar.test.inclusions="**/*.test.*,**/*.spec.*" \\
-                        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \\
-                        -Dsonar.coverage.exclusions="**/*.test.*,**/*.spec.*,**/node_modules/**" \\
-                        -Dsonar.host.url=${SONAR_HOST_URL}
-                    '''
+                    script {
+                        def scannerHome = tool 'SonarScanner'
+
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                            -Dsonar.projectName="Pokedex PWA - DevOps Evaluation" \
+                            -Dsonar.projectVersion=${BUILD_NUMBER} \
+                            -Dsonar.sources=src \
+                            -Dsonar.tests=src/test \
+                            -Dsonar.test.inclusions=**/*.test.*,**/*.spec.* \
+                            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+                            -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/node_modules/** \
+                            -Dsonar.host.url=${SONAR_HOST_URL}
+                        """
+                    }
                 }
             }
         }
@@ -105,7 +107,6 @@ pipeline {
                 echo '🏗️ Construyendo aplicación para producción...'
                 sh 'npm run build'
                 
-                // Verificar build exitoso
                 sh '''
                     if [ ! -d "dist" ] || [ ! -f "dist/index.html" ]; then
                         echo "❌ Error: Build falló"
@@ -124,17 +125,14 @@ pipeline {
             steps {
                 echo '🚀 Desplegando a Producción via CLI...'
                 script {
-                    // Inyectar credenciales de Vercel de forma segura
                     withCredentials([
                         string(credentialsId: 'VERCEL_TOKEN', variable: 'VERCEL_TOKEN'),
                         string(credentialsId: 'VERCEL_ORG_ID', variable: 'VERCEL_ORG_ID'),
                         string(credentialsId: 'VERCEL_PROJECT_ID', variable: 'VERCEL_PROJECT_ID')
                     ]) {
                         sh '''
-                            # Instalar Vercel CLI
                             npm install -g vercel@latest
                             
-                            # Crear archivo .vercel/project.json para evitar interactividad
                             mkdir -p .vercel
                             cat > .vercel/project.json << EOF
 {
@@ -143,10 +141,8 @@ pipeline {
 }
 EOF
                             
-                            # Despliegue headless sin interactividad
                             vercel deploy --prod --token=${VERCEL_TOKEN} --yes --force
                             
-                            # Obtener URL de producción
                             PROD_URL=$(vercel ls --prod --token=${VERCEL_TOKEN} | head -1 | awk '{print $2}')
                             echo "🌐 URL de Producción: ${PROD_URL}"
                         '''
@@ -159,7 +155,6 @@ EOF
     post {
         always {
             echo '🧹 Limpiando workspace...'
-            // Limpiar archivos sensibles
             sh '''
                 rm -rf .vercel/
                 rm -rf node_modules/
@@ -196,7 +191,6 @@ EOF
             script {
                 def failureReason = "Etapa no identificada"
                 
-                // Identificar en qué etapa falló
                 if (env.STAGE_NAME == "Quality Gate") {
                     failureReason = "Quality Gate - Código no cumple estándares"
                 } else if (env.STAGE_NAME == "Unit Tests") {
