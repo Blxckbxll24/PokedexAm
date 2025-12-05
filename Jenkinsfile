@@ -3,7 +3,6 @@ pipeline {
     
     tools {
         nodejs "NodeJS-18"
-        sonarQubeScanner "SonarScanner"
     }
     
     environment {
@@ -76,6 +75,15 @@ pipeline {
                     try {
                         withSonarQubeEnv('SonarQube') {
                             sh '''
+                                # Instalar SonarQube Scanner temporalmente si no está disponible
+                                if ! command -v sonar-scanner >/dev/null 2>&1; then
+                                    echo "📥 Descargando SonarQube Scanner..."
+                                    curl -L -o /tmp/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856.zip
+                                    unzip -q /tmp/sonar-scanner.zip -d /tmp/
+                                    export PATH="/tmp/sonar-scanner-4.8.0.2856/bin:$PATH"
+                                fi
+                                
+                                echo "✅ Ejecutando análisis SonarQube..."
                                 sonar-scanner \\
                                   -Dsonar.projectKey=pokedx-pwa \\
                                   -Dsonar.projectName="Pokedex PWA - DevOps Evaluation" \\
