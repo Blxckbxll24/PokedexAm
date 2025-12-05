@@ -3,13 +3,14 @@ pipeline {
     
     tools {
         nodejs "NodeJS-18"
+        sonarQubeScanner "sonar-scanner"
     }
     
     environment {
         // Variables del proyecto
         PROJECT_NAME = 'pokedex-pwa'
         SONAR_PROJECT_KEY = 'pokedx-pwa'
-        SONAR_HOST_URL = 'http://sonarqube:9000'
+        SONAR_HOST_URL = 'http://localhost:9000'
     }
     
     stages {
@@ -125,9 +126,9 @@ pipeline {
                 script {
                     // Inyectar credenciales de Vercel de forma segura
                     withCredentials([
-                        string(credentialsId: 'vercel-token', variable: 'VERCEL_TOKEN'),
-                        string(credentialsId: 'vercel-org-id', variable: 'VERCEL_ORG_ID'),
-                        string(credentialsId: 'vercel-project-id', variable: 'VERCEL_PROJECT_ID')
+                        string(credentialsId: 'VERCEL_TOKEN', variable: 'VERCEL_TOKEN'),
+                        string(credentialsId: 'VERCEL_ORG_ID', variable: 'VERCEL_ORG_ID'),
+                        string(credentialsId: 'VERCEL_PROJECT_ID', variable: 'VERCEL_PROJECT_ID')
                     ]) {
                         sh '''
                             # Instalar Vercel CLI
