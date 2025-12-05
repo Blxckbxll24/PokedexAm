@@ -65,7 +65,6 @@ pipeline {
                     try {
                         withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                             sh '''
-                                # Verificar si sonar-scanner está disponible
                                 if command -v sonar-scanner >/dev/null 2>&1; then
                                     echo "✅ SonarQube Scanner encontrado"
                                     sonar-scanner \\
@@ -86,7 +85,6 @@ pipeline {
                         }
                     } catch (Exception e) {
                         echo "⚠️  Error en análisis SonarQube: ${e.message}"
-                        echo "🔄 Continuando pipeline sin análisis SonarQube"
                     }
                 }
             }
@@ -101,22 +99,11 @@ pipeline {
                             def qg = waitForQualityGate()
                             if (qg.status != 'OK') {
                                 error "❌ Quality Gate FALLÓ: ${qg.status}"
-                            } else {
-                                echo "✅ Quality Gate PASÓ exitosamente"
                             }
                         }
                     } catch (Exception e) {
-                        echo "⚠️  Quality Gate no disponible: ${e.message}"
-                        echo "🔄 Continuando pipeline sin Quality Gate"
-                        
-                        // Verificación básica alternativa
-                        def hasErrors = sh(script: 'npm run lint || exit 0', returnStatus: true)
-                        if (hasErrors != 0) {
-                            echo "❌ Linting encontró errores"
-                            error "Quality check failed: Linting errors found"
-                        } else {
-                            echo "✅ Verificación básica de calidad pasó"
-                        }
+                        echo "⚠️  Quality Gate no disponible"
+                        sh 'npm run lint || true'
                     }
                 }
             }
@@ -165,9 +152,6 @@ pipeline {
 EOF
                             
                             vercel deploy --prod --token=${VERCEL_TOKEN} --yes --force
-                            
-                            PROD_URL=$(vercel ls --prod --token=${VERCEL_TOKEN} | head -1 | awk '{print $2}')
-                            echo "🌐 URL de Producción: ${PROD_URL}"
                         '''
                     }
                 }
@@ -187,54 +171,31 @@ EOF
         
         success {
             script {
+                def branch = env.BRANCH_NAME ?: "unknown"
                 def message = """
 ✅ Pipeline EXITOSO - Pokedx PWA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 Build: #${BUILD_NUMBER}
-🌿 Rama: ${BRANCH_NAME}  
+🌿 Rama: ${branch}
 📝 Commit: ${GIT_COMMIT_SHORT}
 ⏱️ Duración: ${currentBuild.durationString}
 """
-             if (env.GIT_BRANCH == 'origin/develop') {
-                    message += """
-🚀 DESPLEGADO A PRODUCCIÓN
-🌐 Verificar en Vercel Dashboard
-"""
-                } else {
-                    message += """
-🔄 RAMA DEVELOP - Deploy SALTADO
-✨ Quality Gate pasado, listo para merge a main
-"""
-                }
+
                 echo message
             }
         }
         
         failure {
             script {
-                def failureReason = "Etapa no identificada"
-                
-                if (env.STAGE_NAME == "Quality Gate") {
-                    failureReason = "Quality Gate - Código no cumple estándares"
-                } else if (env.STAGE_NAME == "Unit Tests") {
-                    failureReason = "Tests Unitarios - Tests fallando"
-                } else if (env.STAGE_NAME == "SonarQube Analysis") {
-                    failureReason = "Análisis SonarQube - Error de configuración"
-                } else if (env.STAGE_NAME == "Deploy to Production") {
-                    failureReason = "Despliegue - Error en Vercel"
-                }
+                def branch = env.BRANCH_NAME ?: "unknown"
                 
                 def errorMessage = """
 ❌ Pipeline FALLÓ - Pokedx PWA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 Build: #${BUILD_NUMBER}
-🌿 Rama: ${BRANCH_NAME}
+🌿 Rama: ${branch}
 📝 Commit: ${GIT_COMMIT_SHORT}
-💥 Falló en: ${failureReason}
 🔗 Logs: ${BUILD_URL}console
-
-🛠️ ACCIÓN REQUERIDA:
-   Revisar logs y corregir errores antes de nuevo push
 """
                 echo errorMessage
             }
