@@ -75,19 +75,31 @@ pipeline {
                     try {
                         withSonarQubeEnv('SonarQube') {
                             sh '''
+                                # Guardar directorio del workspace
+                                WORKSPACE_DIR=$(pwd)
+                                echo "📂 Workspace: $WORKSPACE_DIR"
+                                
                                 # Instalar SonarQube Scanner temporalmente si no está disponible
                                 if ! command -v sonar-scanner >/dev/null 2>&1; then
                                     echo "📥 Descargando SonarQube Scanner..."
                                     rm -rf /tmp/sonar-scanner* || true
                                     curl -L -o /tmp/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
                                     cd /tmp && unzip -o -q sonar-scanner.zip
-                                    export PATH="/tmp/sonar-scanner-5.0.1.3006/bin:$PATH"
                                     chmod +x /tmp/sonar-scanner-5.0.1.3006/bin/sonar-scanner
+                                    
+                                    # Regresar al workspace
+                                    cd "$WORKSPACE_DIR"
                                 fi
                                 
-                                echo "✅ Ejecutando análisis SonarQube..."
-                                echo "📂 Directorio actual: $(pwd)"
-                                echo "📁 Contenido src/: $(ls -la src/ | head -5)"
+                                # Asegurar que estamos en el workspace
+                                cd "$WORKSPACE_DIR"
+                                export PATH="/tmp/sonar-scanner-5.0.1.3006/bin:$PATH"
+                                
+                                echo "✅ Ejecutando análisis SonarQube desde: $(pwd)"
+                                echo "📁 Verificando estructura del proyecto:"
+                                ls -la | head -10
+                                echo "📂 Contenido de src/:"
+                                ls -la src/ | head -5 || echo "⚠️ src/ no encontrado"
                                 
                                 sonar-scanner \\
                                   -Dsonar.projectKey=pokedx-pwa \\
