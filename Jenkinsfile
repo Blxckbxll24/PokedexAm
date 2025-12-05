@@ -171,7 +171,7 @@ EOF
 📝 Commit: ${GIT_COMMIT_SHORT}
 ⏱️ Duración: ${currentBuild.durationString}
 """
-                if (env.BRANCH_NAME == 'main') {
+             if (env.GIT_BRANCH == 'origin/develop') {
                     message += """
 🚀 DESPLEGADO A PRODUCCIÓN
 🌐 Verificar en Vercel Dashboard
