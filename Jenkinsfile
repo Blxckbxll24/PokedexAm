@@ -78,9 +78,11 @@ pipeline {
                                 # Instalar SonarQube Scanner temporalmente si no está disponible
                                 if ! command -v sonar-scanner >/dev/null 2>&1; then
                                     echo "📥 Descargando SonarQube Scanner..."
-                                    curl -L -o /tmp/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856.zip
-                                    unzip -q /tmp/sonar-scanner.zip -d /tmp/
-                                    export PATH="/tmp/sonar-scanner-4.8.0.2856/bin:$PATH"
+                                    rm -rf /tmp/sonar-scanner* || true
+                                    curl -L -o /tmp/sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006.zip
+                                    cd /tmp && unzip -o -q sonar-scanner.zip
+                                    export PATH="/tmp/sonar-scanner-5.0.1.3006/bin:$PATH"
+                                    chmod +x /tmp/sonar-scanner-5.0.1.3006/bin/sonar-scanner
                                 fi
                                 
                                 echo "✅ Ejecutando análisis SonarQube..."
@@ -99,6 +101,7 @@ pipeline {
                         echo "✅ Análisis SonarQube completado"
                     } catch (Exception e) {
                         echo "⚠️  Error en análisis SonarQube: ${e.message}"
+                        echo "🔧 Continuando con el pipeline..."
                         currentBuild.result = 'UNSTABLE'
                     }
                 }
