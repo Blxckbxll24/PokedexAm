@@ -86,16 +86,20 @@ pipeline {
                                 fi
                                 
                                 echo "✅ Ejecutando análisis SonarQube..."
+                                echo "📂 Directorio actual: $(pwd)"
+                                echo "📁 Contenido src/: $(ls -la src/ | head -5)"
+                                
                                 sonar-scanner \\
                                   -Dsonar.projectKey=pokedx-pwa \\
-                                  -Dsonar.projectName="Pokedex PWA - DevOps Evaluation" \\
+                                  -Dsonar.projectName="Pokedx PWA - DevOps Evaluation" \\
                                   -Dsonar.projectVersion=${BUILD_NUMBER} \\
                                   -Dsonar.sources=src \\
                                   -Dsonar.tests=src/test \\
                                   -Dsonar.test.inclusions=**/*.test.*,**/*.spec.* \\
                                   -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \\
                                   -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/node_modules/** \\
-                                  -Dsonar.qualitygate.wait=true
+                                  -Dsonar.qualitygate.wait=true \\
+                                  -Dsonar.projectBaseDir=$(pwd)
                             '''
                         }
                         echo "✅ Análisis SonarQube completado"
