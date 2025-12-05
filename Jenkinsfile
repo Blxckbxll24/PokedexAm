@@ -135,24 +135,44 @@ pipeline {
             steps {
                 echo '🚀 Desplegando a Producción via CLI...'
                 script {
-                    withCredentials([
-                        string(credentialsId: 'VERCEL_TOKEN', variable: 'VERCEL_TOKEN'),
-                        string(credentialsId: 'VERCEL_ORG_ID', variable: 'VERCEL_ORG_ID'),
-                        string(credentialsId: 'VERCEL_PROJECT_ID', variable: 'VERCEL_PROJECT_ID')
-                    ]) {
-                        sh '''
-                            npm install -g vercel@latest
-                            
-                            mkdir -p .vercel
-                            cat > .vercel/project.json << EOF
+                    try {
+                        withCredentials([
+                            string(credentialsId: 'VERCEL_TOKEN', variable: 'VERCEL_TOKEN'),
+                            string(credentialsId: 'VERCEL_ORG_ID', variable: 'VERCEL_ORG_ID'),
+                            string(credentialsId: 'VERCEL_PROJECT_ID', variable: 'VERCEL_PROJECT_ID')
+                        ]) {
+                            sh '''
+                                echo "🔧 Verificando credenciales..."
+                                if [ -z "$VERCEL_TOKEN" ]; then
+                                    echo "❌ VERCEL_TOKEN no configurado"
+                                    exit 1
+                                fi
+                                echo "✅ Token configurado (${#VERCEL_TOKEN} caracteres)"
+                                
+                                echo "📦 Instalando Vercel CLI..."
+                                npm install -g vercel@latest
+                                
+                                echo "📋 Configurando proyecto..."
+                                mkdir -p .vercel
+                                cat > .vercel/project.json << EOF
 {
   "orgId": "${VERCEL_ORG_ID}",
   "projectId": "${VERCEL_PROJECT_ID}"
 }
 EOF
-                            
-                            vercel deploy --prod --token=${VERCEL_TOKEN} --yes --force
-                        '''
+                                
+                                echo "📂 Contenido de .vercel/project.json:"
+                                cat .vercel/project.json
+                                
+                                echo "🚀 Iniciando deployment..."
+                                vercel deploy --prod --token=${VERCEL_TOKEN} --yes --force
+                                
+                                echo "✅ Deployment completado"
+                            '''
+                        }
+                    } catch (Exception e) {
+                        echo "❌ Error en deployment: ${e.message}"
+                        error "Deployment to Vercel failed: ${e.message}"
                     }
                 }
             }
