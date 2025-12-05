@@ -92,11 +92,14 @@ pipeline {
                                   -Dsonar.tests=src/test \\
                                   -Dsonar.test.inclusions=**/*.test.*,**/*.spec.* \\
                                   -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \\
-                                  -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/node_modules/**
+                                  -Dsonar.coverage.exclusions=**/*.test.*,**/*.spec.*,**/node_modules/** \\
+                                  -Dsonar.qualitygate.wait=true
                             '''
                         }
+                        echo "✅ Análisis SonarQube completado"
                     } catch (Exception e) {
                         echo "⚠️  Error en análisis SonarQube: ${e.message}"
+                        currentBuild.result = 'UNSTABLE'
                     }
                 }
             }
@@ -107,18 +110,21 @@ pipeline {
                 echo '🚪 Verificando Quality Gate...'
                 script {
                     try {
-                        timeout(time: 10, unit: 'MINUTES') {
+                        timeout(time: 5, unit: 'MINUTES') {
                             def qg = waitForQualityGate()
                             if (qg.status != 'OK') {
-                                echo "⚠️  Quality Gate FALLÓ: ${qg.status}"
-                                // No falla el pipeline, solo advierte
+                                echo "⚠️  Quality Gate status: ${qg.status}"
+                                echo "📊 Revisa los detalles en SonarQube: http://localhost:9000/dashboard?id=pokedx-pwa"
+                                currentBuild.result = 'UNSTABLE'
                             } else {
-                                echo "✅ Quality Gate PASSED"
+                                echo "✅ Quality Gate PASSED - Código cumple con los estándares de calidad"
                             }
                         }
                     } catch (Exception e) {
-                        echo "⚠️  Quality Gate no disponible, ejecutando lint como fallback"
+                        echo "⚠️  Quality Gate timeout o no disponible: ${e.message}"
+                        echo "🔧 Ejecutando lint como fallback..."
                         sh 'npm run lint || true'
+                        currentBuild.result = 'UNSTABLE'
                     }
                 }
             }
