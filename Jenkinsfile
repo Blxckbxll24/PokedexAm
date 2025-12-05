@@ -22,6 +22,16 @@ pipeline {
                         script: 'git rev-parse --short HEAD',
                         returnStdout: true
                     ).trim()
+                    
+                    // Detectar rama actual
+                    env.CURRENT_BRANCH = sh(
+                        script: 'git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main"',
+                        returnStdout: true
+                    ).trim()
+                    
+                    echo "🌿 Rama detectada: ${env.CURRENT_BRANCH}"
+                    echo "🌿 BRANCH_NAME: ${env.BRANCH_NAME}"
+                    echo "🌿 GIT_BRANCH: ${env.GIT_BRANCH}"
                 }
             }
         }
@@ -111,7 +121,12 @@ pipeline {
         
         stage('Build for Production') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    branch 'origin/main'
+                    expression { env.GIT_BRANCH == 'origin/main' }
+                    expression { env.BRANCH_NAME == 'main' }
+                }
             }
             steps {
                 echo '🏗️ Construyendo aplicación para producción...'
@@ -130,7 +145,12 @@ pipeline {
         
         stage('Deploy to Production') {
             when {
-                branch 'main'
+                anyOf {
+                    branch 'main'
+                    branch 'origin/main'
+                    expression { env.GIT_BRANCH == 'origin/main' }
+                    expression { env.BRANCH_NAME == 'main' }
+                }
             }
             steps {
                 echo '🚀 Desplegando a Producción via CLI...'
@@ -191,7 +211,7 @@ EOF
         
         success {
             script {
-                def branch = env.BRANCH_NAME ?: "unknown"
+                def branch = env.CURRENT_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: "unknown"
                 def message = """
 ✅ Pipeline EXITOSO - Pokedx PWA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -207,7 +227,7 @@ EOF
         
         failure {
             script {
-                def branch = env.BRANCH_NAME ?: "unknown"
+                def branch = env.CURRENT_BRANCH ?: env.BRANCH_NAME ?: env.GIT_BRANCH ?: "unknown"
                 
                 def errorMessage = """
 ❌ Pipeline FALLÓ - Pokedx PWA
